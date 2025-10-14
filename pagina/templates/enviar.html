@@ -21,7 +21,7 @@
             <div class="progress-bar bg-success" id="progress-bar" role="progressbar" style="width: 20%"></div>
         </div>
 
-        <form id="anamnesisForm" method="post">
+        <form id="anamnesisForm" method="post" action="/buscar/">
             {% csrf_token %} <!-- Agrega esto para seguridad -->
             <!-- Campo oculto para enviar latitud -->
             <input type="hidden" name="latitud" id="latitud" value="">
