@@ -25,7 +25,12 @@ SECRET_KEY = 'django-insecure-41c=b84j49br4s(3k8t2hgz)astn7g%n!tp-%ypbtr-$kbbx0w
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '192.168.1.89',
+    'salverform-tripp-remiss.ngrok-free.dev',# <-- Agrega esta línea con TU IP
+]
 
 
 # Application definition
@@ -116,6 +121,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "pagina" / "static",
+]
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

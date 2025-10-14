@@ -1,6 +1,7 @@
+<!-- pagina/templates/enviar.html -->
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -20,12 +21,20 @@
             <div class="progress-bar bg-success" id="progress-bar" role="progressbar" style="width: 20%"></div>
         </div>
 
-        <form id="anamnesisForm">
+        <form id="anamnesisForm" method="post">
+            {% csrf_token %} <!-- Agrega esto para seguridad -->
+            <!-- Campo oculto para enviar latitud -->
+            <input type="hidden" name="latitud" id="latitud" value="">
+            <!-- Campo oculto para enviar longitud -->
+            <input type="hidden" name="longitud" id="longitud" value="">
+            <!-- Campo oculto para enviar unidad destino -->
+            <input type="hidden" name="unidad_destino" id="unidad_destino" value="">
+
             <!-- Paso 1: Motivo -->
             <div class="form-step active" id="step1">
                 <h4 class="mb-3">1. Motivo de derivación</h4>
                 <div class="mb-3">
-                    <textarea class="form-control form-control-lg bg-light text-dark" rows="3"
+                    <textarea class="form-control form-control-lg bg-light text-dark" name="motivo" rows="3"
                         placeholder="Ej: Trauma craneal, dolor torácico, convulsión..." required></textarea>
                 </div>
                 <button type="button" class="btn btn-success btn-lg w-100" onclick="nextStep(1,2)">Siguiente →</button>
@@ -35,7 +44,7 @@
             <div class="form-step" id="step2" style="display:none;">
                 <h4 class="mb-3">2. Síntomas actuales</h4>
                 <div class="mb-3">
-                    <textarea class="form-control form-control-lg bg-light text-dark" rows="3"
+                    <textarea class="form-control form-control-lg bg-light text-dark" name="sintomas" rows="3"
                         placeholder="Inicio, evolución, intensidad"></textarea>
                 </div>
                 <div class="d-grid gap-2">
@@ -49,7 +58,7 @@
             <div class="form-step" id="step3" style="display:none;">
                 <h4 class="mb-3">3. Antecedentes médicos</h4>
                 <div class="mb-3">
-                    <textarea class="form-control form-control-lg bg-light text-dark" rows="2"
+                    <textarea class="form-control form-control-lg bg-light text-dark" name="antecedentes" rows="2"
                         placeholder="HTA, diabetes, alergias, cirugías..."></textarea>
                 </div>
                 <div class="d-grid gap-2">
@@ -63,19 +72,19 @@
             <div class="form-step" id="step4" style="display:none;">
                 <h4 class="mb-3">4. Unidad destino</h4>
                 <div class="mb-3">
-                    <select class="form-select form-select-lg bg-light text-dark" required>
+                    <select class="form-select form-select-lg bg-light text-dark" name="unidad_destino_form" required>
                         <option value="">Seleccionar...</option>
-                        <option>Urgencia traumatológica adulto HRFRZ</option>
-                        <option>Traumatología Infantil HRFRZ</option>
-                        <option>Telered Urgencias O’Higgins</option>
-                        <option>Derivaciones área norte RIUE</option>
-                        <option>Ambulancia RIU</option>
-                        <option>Derivaciones SAR Oriente</option>
-                        <option>Urgencia Carretera de la fruta</option>
-                        <option>Red Integrada Santa Cruz</option>
-                        <option>Telered San Fernando adulto</option>
-                        <option>Telered San Fernando pediatría</option>
-                        <option>Red Cachapoal SUR</option>
+                        <option value="Urgencia traumatológica adulto HRFRZ">Urgencia traumatológica adulto HRFRZ</option>
+                        <option value="Traumatología Infantil HRFRZ">Traumatología Infantil HRFRZ</option>
+                        <option value="Telered Urgencias O’Higgins">Telered Urgencias O’Higgins</option>
+                        <option value="Derivaciones área norte RIUE">Derivaciones área norte RIUE</option>
+                        <option value="Ambulancia RIU">Ambulancia RIU</option>
+                        <option value="Derivaciones SAR Oriente">Derivaciones SAR Oriente</option>
+                        <option value="Urgencia Carretera de la fruta">Urgencia Carretera de la fruta</option>
+                        <option value="Red Integrada Santa Cruz">Red Integrada Santa Cruz</option>
+                        <option value="Telered San Fernando adulto">Telered San Fernando adulto</option>
+                        <option value="Telered San Fernando pediatría">Telered San Fernando pediatría</option>
+                        <option value="Red Cachapoal SUR">Red Cachapoal SUR</option>
                     </select>
                 </div>
                 <div class="d-grid gap-2">
@@ -89,51 +98,21 @@
             <div class="form-step" id="step5" style="display:none;">
                 <h4 class="mb-3">Confirmar envío</h4>
                 <div class="alert alert-info text-dark">
-                    <p><strong>Ubicación GPS:</strong> -34.1709, -70.7447 (autodetectada)</p>
-                    <p><strong>Unidad origen:</strong> Red Cachapoal SUR</p>
-                    <p><strong>Hora:</strong> 06:23 hrs</p>
+                    <p><strong>Ubicación GPS:</strong> <span id="ubicacion-gps">Detectando...</span></p>
+                    <p><strong>Unidad destino:</strong> <span id="confirm-destino">-</span></p>
+                    <p><strong>Hora:</strong> <span id="hora-envio">-</span></span></p>
                 </div>
                 <p class="text-muted">¿Está todo correcto? El envío es irreversible.</p>
                 <div class="d-grid gap-2">
                     <button type="button" class="btn btn-outline-light btn-lg" onclick="prevStep(5,4)">← Editar</button>
-                    <button type="submit" class="btn btn-success btn-lg">📤 ENVIAR ANAMNESIS AHORA</button>
+                    <button type="submit" class="btn btn-success btn-lg">ENVIAR ANAMNESIS AHORA</button>
                 </div>
             </div>
         </form>
     </div>
 
-    <script>
-        const totalSteps = 5;
-        let currentStep = 1;
-
-        function updateProgress() {
-            const percent = (currentStep / totalSteps) * 100;
-            document.getElementById('progress-bar').style.width = percent + '%';
-        }
-
-        function showStep(stepId) {
-            document.querySelectorAll('.form-step').forEach(el => el.style.display = 'none');
-            document.getElementById('step' + stepId).style.display = 'block';
-        }
-
-        function nextStep(from, to) {
-            showStep(to);
-            currentStep = to;
-            updateProgress();
-        }
-
-        function prevStep(from, to) {
-            showStep(to);
-            currentStep = to;
-            updateProgress();
-        }
-
-        // Simular GPS
-        window.onload = function () {
-            const gps = document.querySelector('.alert p:first-child');
-            if (gps) gps.innerHTML = `<strong>Ubicación GPS:</strong> ${(-34.1700 + Math.random() * 0.01).toFixed(4)}, ${(-70.7400 + Math.random() * 0.01).toFixed(4)} (autodetectada)`;
-        };
-    </script>
+    <!-- Carga el script externo -->
+    <script src="{% static 'js/form_steps.js' %}"></script>
+    <script src="{% static 'js/geolocation.js' %}"></script>
 </body>
-
 </html>
