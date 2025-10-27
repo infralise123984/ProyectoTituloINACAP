@@ -1,3 +1,5 @@
 from django.contrib import admin
-
-# Register your models here.
+from .models import Especialidad, PerfilUsuario, Anamnesis
+admin.site.register(Especialidad)
+admin.site.register(PerfilUsuario)
+admin.site.register(Anamnesis)

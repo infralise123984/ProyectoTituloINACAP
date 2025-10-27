@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+/* === COLORES DE EMERGENCIA (BOOTSTRAP-FRIENDLY) === */
+:root {
+  --em-red: #d32f2f;
+  --em-blue: #1565c0;
+  --em-bg: #0a192f;
+  --em-card: #1e293b;
+  --em-input: #334155;
+  --em-text: #f8fafc;
+  --em-muted: #94a3b8;
+  --em-border: #475569;
+  --em-success: #22c55e;
+}
+
+/* === FUENTE GLOBAL === */
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--em-bg);
+  color: var(--em-text);
+  min-height: 100vh;
+}
+
+/* === NAVBAR === */
+.navbar {
+  background: var(--em-blue) !important;
+  border-bottom: 3px solid var(--em-red);
+  padding: 1rem 0;
+}
+
+.navbar .navbar-brand {
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: white !important;
+}
+
+.navbar .navbar-text {
+  color: #bbdefb !important;
+  font-size: 0.95rem;
+}
+
+/* === CARDS === */
+.card {
+  background: var(--em-card);
+  border: 2px solid var(--em-border);
+  border-radius: 1rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+/* === FORMULARIOS (Bootstrap classes) === */
+.form-control, .form-select {
+  background: var(--em-input);
+  border: 2px solid var(--em-border);
+  color: var(--em-text);
+  border-radius: 0.8rem;
+  padding: 1rem 1.2rem;
+  font-size: 1.2rem;
+  font-weight: 500;
+  height: 58px;
+}
+
+.form-control:focus, .form-select:focus {
+  background: #3b4a6b;
+  border-color: #bbdefb;
+  box-shadow: 0 0 0 3px rgba(187, 222, 251, 0.3);
+  color: var(--em-text);
+}
+
+.form-control::placeholder {
+  color: #94a3b8;
+}
+
+/* === BOTONES (Bootstrap classes) === */
+.btn-success {
+  background: var(--em-red);
+  border: none;
+  font-weight: 700;
+  text-transform: uppercase;
+  min-height: 58px;
+}
+
+.btn-success:hover {
+  background: #b71c1c;
+}
+
+.btn-outline-light {
+  border: 2px solid #bbdefb;
+  color: #bbdefb;
+  font-weight: 600;
+}
+
+.btn-outline-light:hover {
+  background: #bbdefb;
+  color: var(--em-bg);
+}
+
+/* === PROGRESS BAR === */
+.progress {
+  height: 16px;
+  background: #334c70;
+  border-radius: 8px;
+  border: 1px solid var(--em-border);
+}
+
+.progress-bar {
+  background: var(--em-success);
+}
+
+/* === ACORDEÓN === */
+.accordion-button {
+  background: var(--em-card) !important;
+  color: var(--em-text) !important;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 1.2rem 1.5rem;
+  border-radius: 0.8rem !important;
+  border: 1px solid var(--em-border) !important;
+}
+
+.accordion-button:not(.collapsed) {
+  background: var(--em-blue) !important;
+  color: white !important;
+}
+
+.accordion-body {
+  background: #26334d;
+  color: #cbd5e1;
+  padding: 1.5rem;
+  border-radius: 0 0 0.8rem 0.8rem;
+  border: 1px solid var(--em-border);
+  border-top: none;
+}
+
+/* === TIPOGRAFÍA === */
+h1, h2, h3, h4, h5, h6 {
+  color: #bbdefb;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+h4 {
+  font-size: 1.4rem;
+  text-transform: uppercase;
+}
+
+small, .text-muted {
+  color: var(--em-muted) !important;
+  font-size: 0.95rem;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .form-control, .form-select, .btn {
+    font-size: 1.15rem !important;
+    padding: 1.1rem !important;
+    height: 62px !important;
+  }
+  h4 { font-size: 1.3rem; }
+}

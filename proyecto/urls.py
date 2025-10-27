@@ -20,10 +20,10 @@ from pagina import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('admin/', admin.site.urls),
-    path('',views.index),
-    path('login/',views.login),
-    path('enviar/',views.enviar),
-    path('buscar/',views.buscar),
-
+    path('', views.index, name='index'),
+    path('login/', views.login_view, name='login'),        # Cambiado a login_view
+    path('registro/', views.registro, name='registro'),
+    path('enviar/', views.enviar, name='enviar'),
+    path('buscar/', views.buscar, name='buscar'),
+    path('logout/', views.logout_view, name='logout'),
 ]

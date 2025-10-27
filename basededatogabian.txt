@@ -1,0 +1,116 @@
+-- 1. Tabla: usuario
+CREATE TABLE usuario (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username VARCHAR(150) NOT NULL UNIQUE,
+    password VARCHAR(128) NOT NULL,  -- Argon2 hash
+    rol VARCHAR(20) NOT NULL CHECK (rol IN ('clinico', 'admin'))
+);
+
+-- 2. Tabla: paciente
+CREATE TABLE paciente (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    rut VARCHAR(12) NOT NULL UNIQUE,           -- Ej: '12345678-9'
+    nombre_completo VARCHAR(200) NOT NULL,
+    fecha_nacimiento DATE NOT NULL,
+    sexo CHAR(1) NOT NULL CHECK (sexo IN ('M', 'F', 'O'))
+);
+
+-- 3. Tabla: centro_salud
+CREATE TABLE centro_salud (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nombre VARCHAR(100) NOT NULL,              -- Ej: 'SAR Oriente'
+    canal_telegram VARCHAR(100)                -- Opcional: '@derivaciones_sar'
+);
+
+-- 4. Tabla: anamnesis
+CREATE TABLE anamnesis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    paciente_id UUID NOT NULL REFERENCES paciente(id) ON DELETE CASCADE,
+    usuario_id UUID NOT NULL REFERENCES usuario(id) ON DELETE RESTRICT,
+    motivo_consulta TEXT NOT NULL,
+    sintomas TEXT NOT NULL,
+    antecedentes TEXT,
+    habitos TEXT,
+    ta_sistolica INTEGER CHECK (ta_sistolica BETWEEN 70 AND 250),
+    ta_diastolica INTEGER CHECK (ta_diastolica BETWEEN 40 AND 150),
+    frecuencia_cardiaca INTEGER CHECK (frecuencia_cardiaca BETWEEN 30 AND 220),
+    saturacion_oxigeno INTEGER CHECK (saturacion_oxigeno BETWEEN 70 AND 100),
+    frecuencia_respiratoria INTEGER CHECK (frecuencia_respiratoria BETWEEN 8 AND 60),
+    intervenciones TEXT,
+    estado_actual TEXT NOT NULL,
+    solicitud TEXT NOT NULL,
+    fecha_registro TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- 5. Tabla: registro_derivacion
+CREATE TABLE registro_derivacion (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    anamnesis_id UUID NOT NULL REFERENCES anamnesis(id) ON DELETE CASCADE UNIQUE,
+    centro_destino_id UUID NOT NULL REFERENCES centro_salud(id) ON DELETE RESTRICT,
+    fecha_envio TIMESTAMP NOT NULL DEFAULT NOW(),
+    mensaje_generado TEXT NOT NULL
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+usuario
+    Id PK
+    nombre
+    apellido
+    mail
+    contraseña
+    idEspecialidad FK especialidad.id
+
+
+especialidad
+    id PK
+    nombre
+
+
+Anamnesis
+    Id PK
+    rut
+    nombrePaciente
+    apellidoPaciente
+    Motivo
+    Sintomas
+    antecedentes
+    idCentroDestino FK
+    idUsuario FK usuario.id
+    horaEnvio
+    idUsuario
+    fechaNacimiento
+
+
+
+
+
+
+
+
+
+
