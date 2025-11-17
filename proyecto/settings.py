@@ -22,6 +22,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-41c=b84j49br4s(3k8t2hgz)astn7g%n!tp-%ypbtr-$kbbx0w'
 
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -107,17 +109,19 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
+# === ZONA HORARIA CHILE ===
+TIME_ZONE = 'America/Santiago'  # ¡Esto es clave!
+USE_TZ = True  # Siempre True para manejar UTC internamente
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+# === IDIOMA CHILE ===
+LANGUAGE_CODE = 'es-cl'
 USE_I18N = True
+USE_L10N = True
 
-USE_TZ = True
-
+# Formato de fecha/hora chileno
+DATE_FORMAT = 'd/m/Y'
+TIME_FORMAT = 'H:i'
+DATETIME_FORMAT = 'd/m/Y H:i'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/

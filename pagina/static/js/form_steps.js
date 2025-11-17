@@ -1,6 +1,6 @@
 // pagina/static/pagina/js/form_steps.js
 
-const totalSteps = 5;
+const totalSteps = 6;                    // ← 6 pasos ahora
 let currentStep = 1;
 
 function updateProgress() {
@@ -12,49 +12,42 @@ function showStep(stepId) {
     document.querySelectorAll('.form-step').forEach(el => el.style.display = 'none');
     document.getElementById('step' + stepId).style.display = 'block';
 
-    if (stepId === 5) {
-        // Llama a la función para mostrar resumen (incluye GPS, unidad y hora)
+    if (stepId === 6) {                 // ← Resumen en el paso 6
         mostrarResumen();
     }
 }
 
+/* --------------------------------------------------------------
+   Validación de campos required en el paso actual
+   -------------------------------------------------------------- */
 function nextStep(from, to) {
-    // Selecciona el contenedor del paso actual (por ejemplo, #step1)
-    const currentStepElement = document.getElementById(`step${from}`);
+    const currentStepEl = document.getElementById(`step${from}`);
+    const required = currentStepEl.querySelectorAll('[required]');
 
-    // Busca dentro de ese contenedor todos los elementos con el atributo 'required'
-    const requiredFields = currentStepElement.querySelectorAll('[required]');
-
-    // Verifica si hay campos requeridos vacíos
     let allFilled = true;
-    for (let field of requiredFields) {
-        // El campo select también se valida correctamente con .value
-        if (!field.value.trim()) { // .trim() elimina espacios en blanco al inicio y final
+    for (let field of required) {
+        if (!field.value.trim()) {
             allFilled = false;
-            break; // Si encontramos uno vacío, ya no es necesario seguir comprobando
+            break;
         }
     }
 
-    // Si hay campos vacíos, no avanzamos
     if (!allFilled) {
-        // Reemplazamos alert por SweetAlert2
         Swal.fire({
             icon: 'warning',
             title: 'Campos incompletos',
             text: 'Por favor, complete todos los campos obligatorios antes de continuar.',
             confirmButtonText: 'Aceptar',
         });
-        return; // Salimos de la función sin avanzar
+        return;
     }
 
-    // Si vamos del paso 4 al 5, guardamos la unidad destino en el hidden input
-    // La obtención del texto de la unidad destino se hará en mostrarResumen
-    if (from === 4 && to === 5) {
-        const unidadSelect = document.querySelector('select[name="unidad_destino_form"]');
-        const unidadValue = unidadSelect.value;
-        // const unidadText = unidadSelect.options[unidadSelect.selectedIndex]?.text || 'No seleccionada';
-        document.getElementById('unidad_destino').value = unidadValue;
-        // window.unidadDestinoSeleccionada = unidadText; // Ya no es necesario
+    // Paso 5 → 6: copiar el ID de la unidad destino al hidden
+    if (from === 5 && to === 6) {
+        const selectUnidad = document.querySelector('select[name="unidad_destino"]');
+        if (selectUnidad) {
+            document.getElementById('unidad_destino').value = selectUnidad.value;
+        }
     }
 
     showStep(to);
@@ -68,44 +61,57 @@ function prevStep(from, to) {
     updateProgress();
 }
 
-// Nueva función para mostrar el resumen
+/* --------------------------------------------------------------
+   RESUMEN (solo muestra lo que el usuario ingresó)
+   -------------------------------------------------------------- */
 function mostrarResumen() {
-    // Obtener valores de los campos del formulario
-    const motivo = document.querySelector('textarea[name="motivo"]')?.value || '-';
-    const sintomas = document.querySelector('textarea[name="sintomas"]')?.value || '-';
-    const antecedentes = document.querySelector('textarea[name="antecedentes"]')?.value || '-';
-    // Obtener unidad destino *directamente* del select
-    const unidadSelect = document.querySelector('select[name="unidad_destino_form"]');
-    const unidadDestino = unidadSelect ? unidadSelect.options[unidadSelect.selectedIndex]?.text || '-' : '-';
-    // Obtener hora actual
+    // --- Paciente ------------------------------------------------
+    const nombre = document.querySelector('[name="nombre_paciente"]').value.trim();
+    const apellido = document.querySelector('[name="apellido_paciente"]').value.trim();
+    const paciente = apellido ? `${nombre} ${apellido}` : nombre;
+    document.getElementById('resumen-paciente').textContent = paciente || 'No identificado';
+
+    // --- RUT -----------------------------------------------------
+    const rut = document.querySelector('[name="rut_paciente"]').value.trim() || 'No informado';
+    document.getElementById('resumen-rut').textContent = rut;
+
+    // --- Clínica -------------------------------------------------
+    document.getElementById('resumen-motivo').textContent =
+        document.querySelector('[name="motivo"]').value.trim() || '-';
+    document.getElementById('resumen-sintomas').textContent =
+        document.querySelector('[name="sintomas"]').value.trim() || '-';
+    document.getElementById('resumen-antecedentes').textContent =
+        document.querySelector('[name="antecedentes"]').value.trim() || '-';
+
+    // --- Destino -------------------------------------------------
+    const selUnidad = document.querySelector('select[name="unidad_destino"]');
+    const destino = selUnidad ? selUnidad.options[selUnidad.selectedIndex]?.text || '-' : '-';
+    document.getElementById('resumen-destino').textContent = destino;
+
+    // --- Hora ----------------------------------------------------
     const ahora = new Date();
-    const horaEnvio = ahora.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('resumen-hora').textContent =
+        ahora.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
 
-    // Actualizar los elementos del resumen
-    document.getElementById('resumen-motivo').textContent = motivo;
-    document.getElementById('resumen-sintomas').textContent = sintomas;
-    document.getElementById('resumen-antecedentes').textContent = antecedentes;
-    document.getElementById('resumen-destino').textContent = unidadDestino; // Ahora debería funcionar
-    document.getElementById('resumen-hora').textContent = horaEnvio;
-
-    // Manejar la ubicación GPS
-    const ubicacionSpan = document.getElementById('resumen-ubicacion');
-    if (typeof latitudActual !== 'undefined' && typeof longitudActual !== 'undefined' && latitudActual !== null && longitudActual !== null) {
-        // Si las variables ya existen y tienen valor, mostrarlas
-        ubicacionSpan.textContent = `${latitudActual.toFixed(4)}, ${longitudActual.toFixed(4)} (autodetectada)`;
+    // --- GPS -----------------------------------------------------
+    const ubicSpan = document.getElementById('resumen-ubicacion');
+    if (latitudActual !== null && longitudActual !== null) {
+        ubicSpan.textContent = `${latitudActual.toFixed(4)}, ${longitudActual.toFixed(4)} (autodetectada)`;
     } else {
-        // Si no, mostrar "Detectando..." y llamar a la función de geolocalización
-        ubicacionSpan.textContent = 'Detectando...';
+        ubicSpan.textContent = 'Detectando...';
         if (typeof obtenerUbicacionGPS === 'function') {
             obtenerUbicacionGPS();
         } else {
-            console.error("La función obtenerUbicacionGPS no está definida o geolocation.js no se ha cargado correctamente.");
-            ubicacionSpan.textContent = 'Error al obtener ubicación.';
+            console.error('obtenerUbicacionGPS no está definida');
+            ubicSpan.textContent = 'Error al obtener ubicación.';
         }
     }
 }
 
-// Iniciar en el paso 1 al cargar el DOM
+/* --------------------------------------------------------------
+   Inicialización
+   -------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
     showStep(1);
+    updateProgress();
 });

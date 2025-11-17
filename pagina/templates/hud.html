@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}HUD – Interárea{% endblock %}
+
+{% block body_class %}bg-light{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+
+    <!-- Título + Hora -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary mb-0">
+            <i class="bi bi-speedometer2 me-2"></i> HUD Operativo
+        </h2>
+        <div class="text-end">
+            <div class="small text-muted">{{ now|date:"d/m/Y" }}</div>
+            <div class="fw-bold">{{ now|time:"H:i" }}</div>
+        </div>
+    </div>
+
+    <!-- === RESUMEN RÁPIDO (KPI) === -->
+    <div class="row g-3 mb-4">
+        {% if user.perfil.es_emisor %}
+        <div class="col-6 col-md-3">
+            <div class="card text-center border-0 shadow-sm bg-success text-white">
+                <div class="card-body py-3">
+                    <h5 class="mb-0">{{ total_enviadas }}</h5>
+                    <small>Total enviadas</small>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-6 col-md-3">
+            <div class="card text-center border-0 shadow-sm bg-danger text-white">
+                <div class="card-body py-3">
+                    <h5 class="mb-0">{{ pendientes }}</h5>
+                    <small>Pendientes</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <div class="col-6 col-md-3">
+            <div class="card text-center border-0 shadow-sm bg-secondary text-white">
+                <div class="card-body py-3">
+                    <h5 class="mb-0">{{ user.perfil.unidad|default:"—" }}</h5>
+                    <small>Unidad</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === ACCIONES RÁPIDAS === -->
+    <div class="row g-3 mb-4">
+        {% if user.perfil.es_emisor %}
+        <div class="col-12">
+            <a href="{% url 'enviar' %}" class="btn btn-success btn-lg w-100 d-flex align-items-center justify-content-center gap-2 py-3">
+                <i class="bi bi-plus-circle fs-4"></i>
+                <span class="fw-bold">ENVIAR NUEVA ANAMNESIS</span>
+            </a>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <a href="{% url 'buscar' %}" class="btn btn-primary btn-lg w-100 d-flex align-items-center justify-content-center gap-2 py-3">
+                <i class="bi bi-list-check fs-4"></i>
+                <span class="fw-bold">VER TODAS LAS RECIBIDAS</span>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- === ÚLTIMAS 5 ANAMNESIS EN CARDS === -->
+    <h5 class="text-dark mb-3">
+        {% if user.perfil.es_emisor %}Mis últimas enviadas{% else %}Últimas recibidas en {{ user.perfil.unidad }}{% endif %}
+    </h5>
+
+    {% if ultimas %}
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        {% for a in ultimas %}
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0
+                {% if a.estado == 'enviada' %}border-warning border-3
+                {% elif a.estado == 'aceptada' %}border-success border-3
+                {% elif a.derivada_a %}border-purple border-3{% endif %}">
+
+                <div class="card-body">
+                    <!-- Badge de estado -->
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge fs-6 px-3 py-2
+                            {% if a.estado == 'enviada' %}bg-warning text-dark
+                            {% elif a.estado == 'aceptada' %}bg-success
+                            {% elif a.derivada_a %}bg-purple text-white{% endif %}">
+                            {% if a.estado == 'enviada' %}⏳ PENDIENTE
+                            {% elif a.estado == 'aceptada' %}✓ ACEPTADA
+                            {% elif a.derivada_a %}↷ DERIVADA → {{ a.derivada_a }}{% endif %}
+                        </span>
+                        <small class="text-muted">{{ a.fecha_envio|time:"H:i" }}</small>
+                    </div>
+
+                    <!-- Paciente -->
+                    <h6 class="card-title mb-1">
+                        {% if a.nombre_paciente == 'NN' or not a.nombre_paciente and not a.apellido_paciente %}
+                            <span class="text-warning">NN, paciente desconocido</span>
+                        {% else %}
+                            {{ a.nombre_paciente }} {{ a.apellido_paciente|default:'' }}
+                        {% endif %}
+                    </h6>
+
+                    <!-- Motivo -->
+                    <p class="card-text mb-2">
+                        <strong>{{ a.motivo|truncatechars:60 }}</strong>
+                    </p>
+
+                    <!-- Gravedad -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge 
+                            {% if a.gravedad == 'alto' %}bg-danger
+                            {% elif a.gravedad == 'medio' %}bg-warning text-dark
+                            {% else %}bg-success{% endif %}">
+                            {{ a.get_gravedad_display }}
+                        </span>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="imprimir({{ a.id }})">
+                            <i class="bi bi-printer"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-hourglass-split display-6"></i>
+        <p class="mt-3">Sin actividad reciente</p>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Estilos para color violeta (derivado) -->
+<style>
+    .border-purple { border-color: #9461D6 !important; }
+    .bg-purple { background-color: #9461D6 !important; }
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function imprimir(id) {
+    const card = document.querySelector(`[onclick="imprimir(${id})"]`).closest('.card');
+    const content = card.querySelector('.card-body').innerHTML;
+    const win = window.open('', '_blank');
+    win.document.write(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Anamnesis #${id}</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 2rem; line-height: 1.6; }
+        h1 { color: #d32f2f; text-align: center; margin-bottom: 1rem; }
+        hr { border: 1px solid #ccc; margin: 1.5rem 0; }
+        @media print { body { font-size: 12pt; } }
+    </style>
+</head>
+<body>
+    <h1>ANAMNESIS PREHOSPITALARIA</h1>
+    <hr>
+    ${content}
+    <hr>
+    <p class="text-center"><em>Impreso: ${new Date().toLocaleString('es-CL')}</em></p>
+</body>
+</html>`);
+    win.document.close();
+    setTimeout(() => win.print(), 500);
+}
+</script>
+{% endblock %}

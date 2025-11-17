@@ -1,5 +1,4 @@
 from django.contrib import admin
-from .models import Especialidad, PerfilUsuario, Anamnesis
-admin.site.register(Especialidad)
+from .models import PerfilUsuario, Anamnesis
 admin.site.register(PerfilUsuario)
 admin.site.register(Anamnesis)

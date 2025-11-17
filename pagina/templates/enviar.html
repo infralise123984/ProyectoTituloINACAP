@@ -1,120 +1,86 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Enviar - Interárea</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-</head>
+{% block title %}Enviar Anamnesis – Interárea{% endblock %}
 
-<body class="bg-light">
+{% block body_class %}bg-light{% endblock %}
 
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container-fluid">
-            <span class="navbar-brand">Interárea – Enviar</span>
-            <div>
-                <span class="navbar-text me-2 small text-white">Paramédico: {{ user.username }}</span>
-                <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Salir</a>
+{% block content %}
+<div class="container py-4">
+
+    <h2 class="text-center text-primary mb-4">Enviar Anamnesis</h2>
+
+    <form method="post" action="{% url 'enviar' %}" id="anamnesisForm">
+        {% csrf_token %}
+
+        <!-- ==== Paciente ==== -->
+        <div class="mb-5">
+            <h4 class="mb-3">Paciente</h4>
+            <div class="row g-3">
+                <div class="col-md-4">{{ form.nombre_paciente }}</div>
+                <div class="col-md-4">{{ form.apellido_paciente }}</div>
+                <div class="col-md-4">{{ form.rut_paciente }}</div>
             </div>
-        </div>
-    </nav>
-
-    <div class="container py-4">
-        <div class="progress mb-4" style="height: 8px;">
-            <div class="progress-bar bg-success" id="progress-bar" style="width: 20%"></div>
+            <small class="text-muted d-block mt-2">
+                Si no se conoce → dejar en blanco (se guardará como “NN” y RUT 00.000.000-0)
+            </small>
         </div>
 
-        <form id="anamnesisForm" method="post" action="{% url 'enviar' %}">
-            {% csrf_token %}
-            <input type="hidden" name="unidad_destino" id="unidad_destino" value="">
+        <!-- ==== Motivo ==== -->
+        <div class="mb-5">
+            <h4 class="mb-3">Motivo</h4>
+            {{ form.motivo }}
+        </div>
 
-            <!-- Paso 1 -->
-            <div class="form-step card p-4 mb-3 active" id="step1">
-                <h4 class="card-title">1. Paciente</h4>
-                <div class="row g-3">
-                    <div class="col-6">
-                        <input type="text" class="form-control form-control-lg" name="nombre_paciente" placeholder="Nombre">
-                    </div>
-                    <div class="col-6">
-                        <input type="text" class="form-control form-control-lg" name="apellido_paciente" placeholder="Apellido">
-                    </div>
+        <!-- ==== Síntomas ==== -->
+        <div class="mb-5">
+            <h4 class="mb-3">Síntomas</h4>
+            {{ form.sintomas }}
+        </div>
+
+        <!-- ==== Antecedentes ==== -->
+        <div class="mb-5">
+            <h4 class="mb-3">Antecedentes</h4>
+            {{ form.antecedentes }}
+        </div>
+
+        <!-- ==== Signos Vitales ==== -->
+        <div class="mb-5">
+            <h4 class="mb-3">Signos Vitales</h4>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Nivel de conciencia</label>
+                    {{ form.nivel_conciencia }}
                 </div>
-                <small class="text-muted">Si no se conoce → dejar en blanco (se guardará como "NN")</small>
-                <button type="button" class="btn btn-success w-100 mt-3" onclick="nextStep(1,2)">Siguiente</button>
-            </div>
-
-            <!-- Paso 2 -->
-            <div class="form-step card p-4 mb-3" id="step2" style="display:none;">
-                <h4 class="card-title">2. Motivo</h4>
-                <textarea class="form-control form-control-lg" name="motivo" rows="3" placeholder="Motivo de derivación..." required></textarea>
-                <div class="d-flex gap-2 mt-3">
-                    <button type="button" class="btn btn-outline-secondary flex-fill" onclick="prevStep(2,1)">Anterior</button>
-                    <button type="button" class="btn btn-success flex-fill" onclick="nextStep(2,3)">Siguiente</button>
+                <div class="col-md-6">
+                    <label class="form-label">Frecuencia cardíaca (lpm)</label>
+                    {{ form.frecuencia_cardiaca }}
                 </div>
-            </div>
-
-            <!-- Paso 3 -->
-            <div class="form-step card p-4 mb-3" id="step3" style="display:none;">
-                <h4 class="card-title">3. Síntomas</h4>
-                <textarea class="form-control form-control-lg" name="sintomas" rows="3" placeholder="Síntomas actuales..." required></textarea>
-                <div class="d-flex gap-2 mt-3">
-                    <button type="button" class="btn btn-outline-secondary flex-fill" onclick="prevStep(3,2)">Anterior</button>
-                    <button type="button" class="btn btn-success flex-fill" onclick="nextStep(3,4)">Siguiente</button>
+                <div class="col-md-6">
+                    <label class="form-label">Presión arterial</label>
+                    {{ form.presion_arterial }}
                 </div>
-            </div>
-
-            <!-- Paso 4 -->
-            <div class="form-step card p-4 mb-3" id="step4" style="display:none;">
-                <h4 class="card-title">4. Antecedentes</h4>
-                <textarea class="form-control form-control-lg" name="antecedentes" rows="3" placeholder="HTA, diabetes..." required></textarea>
-                <div class="d-flex gap-2 mt-3">
-                    <button type="button" class="btn btn-outline-secondary flex-fill" onclick="prevStep(4,3)">Anterior</button>
-                    <button type="button" class="btn btn-success flex-fill" onclick="nextStep(4,5)">Siguiente</button>
+                <div class="col-md-6">
+                    <label class="form-label">Frecuencia respiratoria (rpm)</label>
+                    {{ form.frecuencia_respiratoria }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Temperatura (°C)</label>
+                    {{ form.temperatura }}
                 </div>
             </div>
+        </div>
 
-            <!-- Paso 5 -->
-            <div class="form-step card p-4 mb-3" id="step5" style="display:none;">
-                <h4 class="card-title">5. Destino</h4>
-                <select class="form-select form-select-lg" name="unidad_destino_form" required>
-                    <option value="" disabled selected>Seleccionar unidad...</option>
-                    <option value="HRFRZ">HRFRZ - Urgencia Adulto</option>
-                    <option value="Telered">Telered O’Higgins</option>
-                    <option value="RIUE">RIUE - Área Norte</option>
-                </select>
-                <div class="d-flex gap-2 mt-3">
-                    <button type="button" class="btn btn-outline-secondary flex-fill" onclick="prevStep(5,4)">Anterior</button>
-                    <button type="submit" class="btn btn-success flex-fill">ENVIAR</button>
-                </div>
-            </div>
-        </form>
-    </div>
+        <!-- ==== Destino ==== -->
+        <div class="mb-5">
+            <h4 class="mb-3">Destino</h4>
+            {{ form.unidad_destino }}
+        </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="{% static 'js/form_steps.js' %}"></script>
-    <script>
-        const original = mostrarResumen;
-        window.mostrarResumen = function () {
-            original && original();
-            const n = document.querySelector('[name="nombre_paciente"]').value.trim() || 'NN';
-            const a = document.querySelector('[name="apellido_paciente"]').value.trim() || '';
-            const p = a ? `${n} ${a}` : n;
-            const el = document.getElementById('resumen-paciente');
-            if (el) el.textContent = p;
-        };
-
-        document.getElementById('anamnesisForm').onsubmit = function () {
-            const n = document.querySelector('[name="nombre_paciente"]');
-            const a = document.querySelector('[name="apellido_paciente"]');
-            if (!n.value.trim()) n.value = 'NN';
-            if (!a.value.trim()) a.value = '';
-        };
-    </script>
-</body>
-
-</html>
+        <!-- ==== Botón Enviar ==== -->
+        <div class="text-center">
+            <button type="submit" class="btn btn-success btn-lg px-5">ENVIAR</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

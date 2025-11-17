@@ -1,118 +1,283 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Buscar Anamnesis - Interárea</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-</head>
+{% block title %}Buscar Anamnesis – Interárea{% endblock %}
 
-<body class="bg-light">
+{% block body_class %}bg-light{% endblock %}
 
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-dark bg-primary">
-        <div class="container-fluid">
-            <span class="navbar-brand">Interárea - Red de Urgencias</span>
-            <div class="d-flex align-items-center gap-3">
-                <span class="navbar-text text-white">Paramédico: <strong>{{ user.username }}</strong></span>
-                <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Salir</a>
-            </div>
-        </div>
-    </nav>
+{% block content %}
+<div class="container py-4">
 
-    <!-- CONTENIDO -->
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-11">
+    <h2 class="text-center text-primary mb-4">
+        <i class="bi bi-search-heart"></i> Anamnesis Recibidas
+    </h2>
 
-                <h2 class="text-center text-primary mb-5">Anamnesis Recibidas</h2>
-
-                <div class="accordion" id="anamnesisAccordion">
-                    {% for a in anamnesis %}
-                    <div class="accordion-item mb-3 border">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed fw-medium" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#c{{ a.id }}">
-                                <div class="d-flex align-items-center w-100">
-                                    <span class="badge bg-info text-dark me-3">Nuevo</span>
-                                    <div class="text-start">
-                                        <strong>{{ a.motivo|truncatechars:45 }}</strong><br>
-                                        <small class="text-muted">{{ a.fecha_envio|time:"H:i" }} – {{ a.usuario.username}}</small>
-                                    </div>
-                                </div>
-                            </button>
-                        </h2>
-                        <div id="c{{ a.id }}" class="accordion-collapse collapse">
-                            <div class="accordion-body">
-                                <div class="row g-4">
-                                    <div class="col-md-6">
-                                        <p class="mb-2">
-                                            <strong>Paciente:</strong>
-                                            {% if a.nombre_paciente == 'NN' and not a.apellido_paciente %}
-                                            <span class="text-warning fw-bold">NN (No identificado)</span>
-                                            {% else %}
-                                            {{ a.nombre_paciente }} {{ a.apellido_paciente }}
-                                            {% endif %}
-                                        </p>
-                                        <p class="mb-2"><strong>Motivo:</strong> {{ a.motivo }}</p>
-                                        <p class="mb-2"><strong>Síntomas:</strong> {{ a.sintomas }}</p>
-                                        {% if a.antecedentes %}
-                                        <p class="mb-2"><strong>Antecedentes:</strong> {{ a.antecedentes }}</p>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p class="mb-2"><strong>Enviado por:</strong> {{ a.usuario.username }}</p>
-                                        <p class="mb-2"><strong>Hora:</strong> {{ a.fecha_envio|date:"d/m/Y H:i" }}</p>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="d-flex gap-2 justify-content-end">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm"
-                                        onclick="imprimir({{ a.id }})">
-                                        Imprimir
-                                    </button>
-                                    <a href="#" class="btn btn-success btn-sm">Aceptar</a>
-                                </div>
-                            </div>
-                        </div>
+    <!-- === FILTROS Y BÚSQUEDA === -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="row g-3 align-items-end">
+                <!-- Búsqueda por texto -->
+                <div class="col-md-6">
+                    <label class="form-label fw-bold small text-muted">Buscar en motivo/paciente</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="searchInput" placeholder="Ej: dolor torácico o Juan Pérez...">
                     </div>
-                    {% empty %}
-                    <div class="text-center py-5">
-                        <p class="text-muted fs-5">No hay anamnesis recibidas.</p>
-                        <a href="{% url 'enviar' %}" class="btn btn-success btn-lg">Enviar primera</a>
-                    </div>
-                    {% endfor %}
                 </div>
 
-                <div class="text-center mt-5">
-                    <a href="{% url 'index' %}" class="btn btn-outline-primary">Volver</a>
+                <!-- Filtro por Estado -->
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small text-muted">Estado</label>
+                    <select class="form-select" id="estadoFilter">
+                        <option value="">Todos los estados</option>
+                        {% for value, label in estados %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Filtro por Gravedad -->
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small text-muted">Gravedad</label>
+                    <select class="form-select" id="gravedadFilter">
+                        <option value="">Todas las gravedades</option>
+                        {% for value, label in gravedades %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
             </div>
+            <small class="text-muted d-block mt-2">Los filtros se aplican en tiempo real. Usa "Todos" para ver todo.</small>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function imprimir(id) {
-            const win = window.open('', '_blank');
-            const body = document.querySelector(`#c${id} .accordion-body`).innerHTML;
-            win.document.write(`
-        <!DOCTYPE html><html><head><title>Anamnesis #${id}</title>
-        <style>
-            body{font-family:Arial, sans-serif;padding:2rem;line-height:1.6;}
-            h1{color:#d32f2f;text-align:center;margin-bottom:1rem;}
-            hr{border:1px solid #ccc;margin:2rem 0;}
-            @media print{body{font-size:12pt;}}
-        </style></head>
-        <body><h1>ANAMNESIS</h1><hr>${body}<hr>
-        <p><em>Impreso: ${new Date().toLocaleString('es-CL')}</em></p></body></html>`);
-            win.document.close();
-            setTimeout(() => win.print(), 500);
-        }
-    </script>
-</body>
+    {% if anamnesis %}
+    <div class="accordion" id="anamnesisAccordion">
+        {% for a in anamnesis %}
+        <div class="accordion-item mb-3 border border-2 item-card
+            {% if a.estado == 'enviada' %}border-warning border-3
+            {% elif a.estado == 'aceptada' %}border-success border-3
+            {% elif a.derivada_a %}border-purple border-3{% endif %}"
+            data-estado="{{ a.estado }}"
+            data-gravedad="{{ a.gravedad }}"
+            data-motivo="{{ a.motivo|lower|escape }}"
+            data-paciente="{% if a.nombre_paciente == 'NN' %}nn{% else %}{{ a.nombre_paciente|lower|escape }} {{ a.apellido_paciente|lower|escape }}{% endif %}">
 
-</html>
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-medium {% if a.estado == 'enviada' %}text-warning
+                    {% elif a.estado == 'aceptada' %}text-success
+                    {% elif a.derivada_a %}text-purple{% endif %}" 
+                    type="button" data-bs-toggle="collapse" data-bs-target="#c{{ a.id }}">
+
+                    <div class="d-flex align-items-center w-100 gap-3">
+                        <!-- ESTADO VISUAL -->
+                        <span class="badge fs-6 px-3 py-2
+                            {% if a.estado == 'enviada' %}bg-warning text-dark
+                            {% elif a.estado == 'aceptada' %}bg-success
+                            {% elif a.derivada_a %}bg-purple text-white{% endif %}">
+                            {% if a.estado == 'enviada' %}⏳ PENDIENTE
+                            {% elif a.estado == 'aceptada' %}✓ ACEPTADA
+                            {% elif a.derivada_a %}↷ DERIVADA → {{ a.derivada_a }}{% endif %}
+                        </span>
+
+                        <div class="text-start flex-grow-1">
+                            <strong>{{ a.motivo|truncatechars:45 }}</strong><br>
+                            <small class="text-muted">
+                                {{ a.fecha_envio|date:"d/m/Y H:i" }} - {{ a.usuario.username }}
+                                {% if a.derivada_por %}
+                                    <span class="text-purple small">(derivada por {{ a.derivada_por.username }})</span>
+                                {% endif %}
+                            </small>
+                        </div>
+
+                        <span class="badge 
+                            {% if a.gravedad == 'alto' %}bg-danger
+                            {% elif a.gravedad == 'medio' %}bg-warning text-dark
+                            {% else %}bg-success{% endif %}">
+                            {{ a.get_gravedad_display }}
+                        </span>
+                    </div>
+                </button>
+            </h2>
+
+            <div id="c{{ a.id }}" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <!-- Contenido igual que antes, pero con colores si quieres -->
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong>Paciente:</strong>
+                                {% if a.nombre_paciente == 'NN' or not a.nombre_paciente and not a.apellido_paciente %}
+                                    <span class="text-warning">NN, paciente desconocido</span>
+                                {% else %}
+                                    {{ a.nombre_paciente }} {{ a.apellido_paciente|default:'' }}
+                                {% endif %}
+                                {% if a.rut_paciente and a.rut_paciente != '00.000.000-0' %}
+                                    <small class="text-muted">({{ a.rut_paciente }})</small>
+                                {% endif %}
+                            </p>
+                            {% if a.motivo %}<p class="mb-2"><strong>Motivo:</strong> {{ a.motivo }}</p>{% endif %}
+                            {% if a.sintomas %}<p class="mb-2"><strong>Síntomas:</strong> {{ a.sintomas }}</p>{% endif %}
+                            {% if a.antecedentes and a.antecedentes != 'No se sabe' %}
+                                <p class="mb-2"><strong>Antecedentes:</strong> {{ a.antecedentes }}</p>
+                            {% else %}
+                                <p class="mb-2 text-muted"><strong>Antecedentes:</strong> No se sabe</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2"><strong>Signos vitales:</strong></p>
+                            <ul class="list-unstyled small">
+                                {% if a.nivel_conciencia and a.nivel_conciencia != 'no_evaluado' %}
+                                    <li><strong>Conciencia:</strong> {{ a.get_nivel_conciencia_display }}</li>
+                                {% else %}<li class="text-muted"><strong>Conciencia:</strong> No evaluado</li>{% endif %}
+                                {% if a.frecuencia_cardiaca and a.frecuencia_cardiaca > 0 %}
+                                    <li><strong>FC:</strong> {{ a.frecuencia_cardiaca }} lpm</li>
+                                {% else %}<li class="text-muted"><strong>FC:</strong> No evaluada</li>{% endif %}
+                                {% if a.presion_arterial and a.presion_arterial != 'No se sabe' %}
+                                    <li><strong>PA:</strong> {{ a.presion_arterial }}</li>
+                                {% else %}<li class="text-muted"><strong>PA:</strong> No se sabe</li>{% endif %}
+                                {% if a.frecuencia_respiratoria and a.frecuencia_respiratoria > 0 %}
+                                    <li><strong>FR:</strong> {{ a.frecuencia_respiratoria }} rpm</li>
+                                {% else %}<li class="text-muted"><strong>FR:</strong> No evaluada</li>{% endif %}
+                                {% if a.temperatura and a.temperatura > 0 %}
+                                    <li><strong>Temp:</strong> {{ a.temperatura }} °C</li>
+                                {% else %}<li class="text-muted"><strong>Temp:</strong> No evaluada</li>{% endif %}
+                            </ul>
+                            <p class="mb-2"><strong>Enviado por:</strong> {{ a.usuario.username }}
+                                {% if a.usuario.perfil.unidad %}
+                                    <span class="badge bg-secondary ms-1">{{ a.usuario.perfil.unidad }}</span>
+                                {% endif %}
+                            </p>
+                            <p class="mb-2"><strong>Destino:</strong> {{ a.unidad_destino }}
+                                {% if a.derivada_a %}
+                                    <span class="text-purple small">→ {{ a.derivada_a }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <hr class="my-3">
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="imprimir({{ a.id }})">
+                            <i class="bi bi-printer"></i> Imprimir
+                        </button>
+
+                        {% if user.perfil.rol in 'medico,enfermero' and a.estado == 'enviada' %}
+                            <a href="{% url 'aceptar_anamnesis' a.id %}" class="btn btn-success btn-sm">
+                                <i class="bi bi-check-circle"></i> Aceptar
+                            </a>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Contador de resultados -->
+    <div id="resultCount" class="text-center py-3 text-muted small d-none">
+        Mostrando <span id="countNum">0</span> de <span id="totalNum">{{ anamnesis|length }}</span> resultados.
+    </div>
+
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-inbox display-1 text-muted"></i>
+        <p class="text-muted fs-5">No hay anamnesis recibidas.</p>
+        {% if user.perfil.es_emisor %}
+            <a href="{% url 'enviar' %}" class="btn btn-success btn-lg">Enviar primera</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Estilos personalizados para color violeta (derivado) -->
+<style>
+    .border-purple { border-color: #9461D6 !important; }
+    .text-purple { color: #9461D6 !important; }
+    .bg-purple { background-color: #9461D6 !important; }
+    .item-card.hidden { display: none !important; }
+</style>
+
+<!-- Script de filtrado dinámico + impresión -->
+<script>
+    // Filtrado en tiempo real
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const estadoFilter = document.getElementById('estadoFilter');
+        const gravedadFilter = document.getElementById('gravedadFilter');
+        const items = document.querySelectorAll('.item-card');
+        const resultCount = document.getElementById('resultCount');
+        const countNum = document.getElementById('countNum');
+        const totalNum = document.getElementById('totalNum');
+
+        function filterItems() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const selectedEstado = estadoFilter.value;
+            const selectedGravedad = gravedadFilter.value;
+
+            let visibleCount = 0;
+            items.forEach(item => {
+                const estado = item.dataset.estado;
+                const gravedad = item.dataset.gravedad;
+                const motivo = item.dataset.motivo || '';
+                const paciente = item.dataset.paciente || '';
+
+                // Chequeos
+                const matchSearch = !searchTerm || motivo.includes(searchTerm) || paciente.includes(searchTerm);
+                const matchEstado = !selectedEstado || estado === selectedEstado;
+                const matchGravedad = !selectedGravedad || gravedad === selectedGravedad;
+
+                if (matchSearch && matchEstado && matchGravedad) {
+                    item.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+
+            // Actualizar contador
+            countNum.textContent = visibleCount;
+            totalNum.textContent = items.length;
+            resultCount.classList.toggle('d-none', visibleCount === 0 || visibleCount === items.length);
+        }
+
+        // Eventos
+        searchInput.addEventListener('input', filterItems);
+        estadoFilter.addEventListener('change', filterItems);
+        gravedadFilter.addEventListener('change', filterItems);
+
+        // Inicial
+        filterItems();
+    });
+
+    // Función de impresión (igual que antes)
+    function imprimir(id) {
+        const body = document.querySelector(`#c${id} .accordion-body`).innerHTML;
+        const win = window.open('', '_blank');
+        win.document.write(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Anamnesis #${id}</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 2rem; line-height: 1.6; }
+        h1 { color: #d32f2f; text-align: center; margin-bottom: 1rem; }
+        hr { border: 1px solid #ccc; margin: 1.5rem 0; }
+        .badge { padding: 0.5em 1em; font-size: 1em; }
+        @media print { body { font-size: 12pt; } }
+    </style>
+</head>
+<body>
+    <h1>ANAMNESIS PREHOSPITALARIA</h1>
+    <hr>
+    ${body}
+    <hr>
+    <p class="text-center"><em>Impreso: ${new Date().toLocaleString('es-CL')}</em></p>
+</body>
+</html>`);
+        win.document.close();
+        setTimeout(() => win.print(), 500);
+    }
+</script>
+{% endblock %}
